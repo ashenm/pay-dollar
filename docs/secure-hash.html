@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Secure Hash</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      form {
+        display: table;
+        table-layout: fixed;
+        border-spacing: 1ch;
+      }
+
+      form > div {
+        display: table-row;
+      }
+
+      label,
+      input,
+      select {
+        display: table-cell;
+      }
+
+      input,
+      select {
+        width: 100%;
+      }
+
+      output {
+        font-family: monospace;
+      }
+    </style>
+    <script>
+      const onFormSubmission = function generateHash(e) {
+        e.preventDefault();
+
+        const str = [
+          this.merchantId.value,
+          this.merchantReference.value,
+          this.currencyCode.value,
+          this.amount.value,
+          this.paymentType.value,
+          this.secret.value,
+        ].join("|");
+
+        window.$output.value = str;
+
+        const encoder = new TextEncoder();
+        const data = encoder.encode(str);
+
+        crypto.subtle.digest("SHA-256", data).then((digest) => {
+          const hash = Array.from(new Uint8Array(digest))
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("");
+          const segments = [window.$output.value, hash];
+          window.$output.innerHTML = segments.join("<br />");
+        });
+      };
+
+      document.onreadystatechange = function onDOMReady() {
+        if (document.readyState !== "interactive") {
+          return;
+        }
+
+        window.$form = document.getElementById("parameters");
+        window.$output = document.getElementById("hash");
+
+        window.$form.addEventListener("submit", onFormSubmission);
+      };
+    </script>
+  </head>
+  <body>
+    <form id="parameters">
+      <div>
+        <label for="merchantId">Merchant ID</label>
+        <input
+          type="text"
+          id="merchantId"
+          name="merchantId"
+          value="1111111111111111"
+        />
+      </div>
+      <div>
+        <label for="merchantReference">Merchant Reference</label>
+        <input
+          type="text"
+          id="merchantReference"
+          name="merchantReference"
+          value="000000000014"
+        />
+      </div>
+      <div>
+        <label for="currencyCode">Currency Code</label>
+        <select id="currencyCode" name="currencyCode">
+          <option value="344">HKD</option>
+          <option value="840">USD</option>
+          <option selected="selected" value="702">SGD</option>
+          <option value="156">CNY (RMB)</option>
+          <option value="392">JPY</option>
+          <option value="901">TWD</option>
+          <option value="036">AUD</option>
+          <option value="978">EUR</option>
+          <option value="826">GBP</option>
+          <option value="124">CAD</option>
+          <option value="446">MOP</option>
+          <option value="608">PHP</option>
+          <option value="764">THB</option>
+          <option value="458">MYR</option>
+          <option value="360">IDR</option>
+          <option value="410">KRW</option>
+          <option value="682">SAR</option>
+          <option value="554">NZD</option>
+          <option value="784">AED</option>
+          <option value="096">BND</option>
+          <option value="704">VND</option>
+          <option value="356">INR</option>
+        </select>
+      </div>
+      <div>
+        <label for="amount">Amount</label>
+        <input type="number" id="amount" name="amount" value="3000" />
+      </div>
+      <div>
+        <label for="paymentType">Payment Type</label>
+        <select id="paymentType" name="paymentType">
+          <option value="N" selected="selected">Normal Payment (Sales)</option>
+          <option value="N">Hold Payment (Authorize Only)</option>
+        </select>
+      </div>
+      <div>
+        <input type="hidden" id="secret" name="secret" value="531531" />
+        <input type="submit" value="Generate Hash" />
+      </div>
+    </form>
+    <output id="hash" for="parameters"></output>
+  </body>
+</html>
